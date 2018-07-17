@@ -14,9 +14,9 @@ namespace Bank.Cards.Infrastructure.Persistence
         private const int ReadBatchSize = 2000;
 
         private readonly IEventStoreConnection _connection;
-        private readonly EventSerializer _eventSerializer;
+        private readonly IEventSerializer _eventSerializer;
 
-        public EventStoreWrapper(IEventStoreConnection connection, EventSerializer eventSerializer)
+        public EventStoreWrapper(IEventStoreConnection connection, IEventSerializer eventSerializer)
         {
             _connection = connection;
             _eventSerializer = eventSerializer;
