@@ -1,15 +1,55 @@
-﻿namespace Bank.Cards.Domain.Account.State
+﻿using System.Collections.Generic;
+using Bank.Cards.Domain.Account.Enumerations;
+using Bank.Cards.Domain.Account.Events;
+using Bank.Cards.Domain.Account.ValueTypes;
+
+namespace Bank.Cards.Domain.Account.State
 {
-    public class AccountState
+    internal class AccountState
     {
-        public string AccountId { get; internal set; }
+        internal AccountId Id { get; }
+        internal AccountNumber AccountNumber { get; private set; }
+        internal AccountStatus Status { get; private set; }
+        internal decimal Balance { get; private set; }
+        internal decimal CreditLimit { get;  private set;}
+        internal long Version { get; private set; }
         
-        public string AccountNumber { get; internal set; }
-
-        public decimal Balance { get; internal set; }
-
-        public long IssuerId { get; internal set; }
-
-        public decimal CreditLimit { get; internal set; }
+        public AccountState(AccountId id)
+        {
+            Id = id;
+        }
+        
+        public AccountState(IEnumerable<AccountDomainEvent> historicEvents)
+        {
+            foreach (var historicEvent in historicEvents)
+            {
+                if (Id == AccountId.Empty)
+                    Id = AccountId.Parse(historicEvent.AggregateId);
+                
+                ApplyEvent(historicEvent);
+            }
+        } 
+        
+        internal void ApplyEvent(AccountDomainEvent domainEvent)
+        {
+            Version++;
+            
+            switch (domainEvent)
+            {
+                case AccountCreatedEvent createdEvent:
+                    Status = AccountStatus.Created;
+                    AccountNumber = new AccountNumber(createdEvent.AccountNumber);
+                    break;
+                case AccountDebitedEvent accountDebitedEvent:
+                    Balance -= accountDebitedEvent.Amount;
+                    break;
+                case AccountCreditedEvent accountCreditedEvent:
+                    Balance += accountCreditedEvent.Amount;
+                    break;
+                case CreditLimitChangedEvent creditLimitChangedEvent:
+                    CreditLimit = creditLimitChangedEvent.CreditLimit;
+                    break;
+            }
+        }
     }
 }

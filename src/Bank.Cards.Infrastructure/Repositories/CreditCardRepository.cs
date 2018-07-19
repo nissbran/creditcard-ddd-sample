@@ -1,11 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Bank.Cards.Domain.Card;
+using Bank.Cards.Domain.Card.Events;
 using Bank.Cards.Domain.Card.Repositories;
+using Bank.Cards.Domain.Card.ValueTypes;
 using Bank.Cards.Infrastructure.Persistence.EventStore;
 
 namespace Bank.Cards.Infrastructure.Repositories
 {
-    public class CreditCardRepository : ICreditCardDomainRepository
+    public class CreditCardRepository : ICreditCardRootRepository
     {
         private readonly IEventStore _eventStore;
 
@@ -14,17 +17,17 @@ namespace Bank.Cards.Infrastructure.Repositories
             _eventStore = eventStore;
         }
 
-        public async Task<Card> GetCardByHashedPan(string hashedPan)
+        public async Task<CreditCard> GetCardById(CardId cardId)
         {
-            var domainEvents = await _eventStore.GetEventsByStreamId(new CreditCardEventStreamId(hashedPan));
+            var domainEvents = await _eventStore.GetEventsByStreamId(new CreditCardEventStreamId(cardId));
             
             if (domainEvents.Count == 0)
                 return null;
 
-            return new Card(domainEvents);
+            return new CreditCard(domainEvents.Cast<CreditCardDomainEvent>());
         }
 
-        public async Task SaveCard(Card card)
+        public async Task SaveCard(CreditCard card)
         {
             var streamVersion = card.AggregateVersion - card.UncommittedEvents.Count;
 
@@ -34,13 +37,13 @@ namespace Bank.Cards.Infrastructure.Repositories
     
     public class CreditCardEventStreamId : EventStreamId
     {
-        public string HashedPan { get; }
+        public string CardId { get; }
 
-        public override string StreamName => $"Card-{HashedPan}";
+        public override string StreamName => $"Card-{CardId}";
 
-        public CreditCardEventStreamId(string hashedPan)
+        public CreditCardEventStreamId(CardId cardId)
         {
-            HashedPan = hashedPan;
+            CardId = cardId;
         }
     }
 }

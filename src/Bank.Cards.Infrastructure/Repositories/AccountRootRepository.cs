@@ -1,7 +1,9 @@
-﻿using System;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Bank.Cards.Domain.Account;
+using Bank.Cards.Domain.Account.Events;
 using Bank.Cards.Domain.Account.Repositories;
+using Bank.Cards.Domain.Account.ValueTypes;
 using Bank.Cards.Infrastructure.Persistence.EventStore;
 
 namespace Bank.Cards.Infrastructure.Repositories
@@ -15,14 +17,14 @@ namespace Bank.Cards.Infrastructure.Repositories
             _eventStore = eventStore;
         }
 
-        public async Task<Account> GetAccountById(Guid accountId)
+        public async Task<Account> GetAccountById(AccountId accountId)
         {
             var domainEvents = await _eventStore.GetEventsByStreamId(new AccountEventStreamId(accountId));
 
             if (domainEvents.Count == 0)
                 return null;
 
-            return new Account(domainEvents);
+            return new Account(domainEvents.Cast<AccountDomainEvent>());
         }
 
         public async Task SaveAccount(Account account)
@@ -44,7 +46,7 @@ namespace Bank.Cards.Infrastructure.Repositories
             Id = id;
         }
 
-        public AccountEventStreamId(Guid id) : this(id.ToString())
+        public AccountEventStreamId(AccountId id) : this(id.ToString())
         {
         }
     }

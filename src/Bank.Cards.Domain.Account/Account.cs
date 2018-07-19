@@ -1,35 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Bank.Cards.Domain.Account.Events;
+using Bank.Cards.Domain.Account.State;
+using Bank.Cards.Domain.Account.ValueTypes;
 using Bank.Cards.Domain.ValueTypes;
 
 namespace Bank.Cards.Domain.Account
 {
     public class Account : IAggregateRoot
     {
-        public string Id => _aggregate.State.AccountId;
+        public AccountId Id => _state.Id;
 
-        public long AggregateVersion => _aggregate.AggregateVersion;
+        public long AggregateVersion => _state.Version;
+        public List<DomainEvent> UncommittedEvents { get; } = new List<DomainEvent>();
 
-        public List<IDomainEvent> UncommittedEvents => _aggregate.UncommittedEvents;
-
-        private readonly AccountAggregate _aggregate;
+        private readonly AccountState _state;
         
-        public Account(Guid id, string accountNumber)
+        public Account(AccountId id, AccountNumber accountNumber)
         {
-            _aggregate = new AccountAggregate(id.ToString());
-            _aggregate.ApplyChange(new AccountCreatedEvent { AccountNumber = accountNumber });
+            _state = new AccountState(id);
+            
+            ApplyChange(new AccountCreatedEvent(accountNumber));
         }
 
-        public Account(IEnumerable<IDomainEvent> historicEvents)
+        public Account(IEnumerable<AccountDomainEvent> historicEvents)
         {
-            _aggregate = new AccountAggregate(historicEvents.Cast<AccountDomainEvent>());
+            _state = new AccountState(historicEvents);
         }
 
-        public void DebitAccount(Money amount)
+        public void SetCreditLimit(decimal creditLimit)
         {
-            _aggregate.ApplyChange(new AccountDebitedEvent(amount.Value, amount.Vat));
+            ApplyChange(new CreditLimitChangedEvent(creditLimit));
+        }
+
+        public void Debit(Money amount, TransactionReference reference)
+        {
+            var expectedBalance = _state.Balance - amount;
+            
+            if (expectedBalance < -_state.CreditLimit)
+                ApplyChange(new CreditLimitHitEvent(reference));
+            else
+                ApplyChange(new AccountDebitedEvent(amount));
+        }
+
+        public void Credit(Money amount)
+        {
+            ApplyChange(new AccountCreditedEvent(amount));
+        }
+
+        private void ApplyChange(AccountDomainEvent domainEvent)
+        {
+            _state.ApplyEvent(domainEvent);
+            domainEvent.AggregateId = Id;
+            UncommittedEvents.Add(domainEvent);
         }
     }
 }

@@ -22,12 +22,12 @@ namespace Bank.Cards.Infrastructure.Persistence
             _eventSerializer = eventSerializer;
         }
 
-        public async Task<IList<IDomainEvent>> GetEventsByStreamId(EventStreamId eventStreamId)
+        public async Task<IList<DomainEvent>> GetEventsByStreamId(EventStreamId eventStreamId)
         {
             return await GetEventsFromStreamVersion(eventStreamId.StreamName, StreamPosition.Start, eventStreamId.ResolveLinks);
         }
 
-        private async Task<IList<IDomainEvent>> GetEventsFromStreamVersion(string streamName, long streamVersion, bool resolveLinks)
+        private async Task<IList<DomainEvent>> GetEventsFromStreamVersion(string streamName, long streamVersion, bool resolveLinks)
         {
             var streamEvents = new List<ResolvedEvent>();
 
@@ -50,7 +50,7 @@ namespace Bank.Cards.Infrastructure.Persistence
             return streamEvents.Select(ConvertEventDataToDomainEvent).ToList();
         }
 
-        public async Task<StreamWriteResult> SaveEvents(EventStreamId eventStreamId, long streamVersion, List<IDomainEvent> events)
+        public async Task<StreamWriteResult> SaveEvents(EventStreamId eventStreamId, long streamVersion, List<DomainEvent> events)
         {
             if (events.Any() == false)
                 return new StreamWriteResult(-1);
@@ -68,12 +68,12 @@ namespace Bank.Cards.Infrastructure.Persistence
             return new StreamWriteResult(result.NextExpectedVersion);
         }
 
-        private IDomainEvent ConvertEventDataToDomainEvent(ResolvedEvent resolvedEvent)
+        private DomainEvent ConvertEventDataToDomainEvent(ResolvedEvent resolvedEvent)
         {
             return _eventSerializer.DeserializeEvent(resolvedEvent);
         }
 
-        private EventData ToEventData(Guid commitId, IDomainEvent domainEvent)
+        private EventData ToEventData(Guid commitId, DomainEvent domainEvent)
         {
             return _eventSerializer.SerializeDomainEvent(commitId, domainEvent);
         }

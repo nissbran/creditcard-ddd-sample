@@ -5,6 +5,7 @@
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Bank.Cards.Application\Bank.Cards.Application.csproj" />
     <ProjectReference Include="..\Bank.Cards.Domain.Account\Bank.Cards.Domain.Account.csproj" />
     <ProjectReference Include="..\Bank.Cards.Infrastructure\Bank.Cards.Infrastructure.csproj" />
   </ItemGroup>

@@ -22,7 +22,7 @@ namespace Bank.Cards.Infrastructure.Serialization
             JsonSerializer.SetDefaultResolver(StandardResolver.AllowPrivateCamelCase);
         }
         
-        public EventData SerializeDomainEvent(Guid commitId, IDomainEvent domainEvent)
+        public EventData SerializeDomainEvent(Guid commitId, DomainEvent domainEvent)
         {
             _eventSchemas.TryGetValue(domainEvent.AggregateType, out var schema);
 
@@ -42,7 +42,7 @@ namespace Bank.Cards.Infrastructure.Serialization
             return new EventData(eventId, eventType, true, data, metadata);
         }
 
-        public IDomainEvent DeserializeEvent(ResolvedEvent resolvedEvent)
+        public DomainEvent DeserializeEvent(ResolvedEvent resolvedEvent)
         {
             var metadata = JsonSerializer.Deserialize<DomainMetadata>(resolvedEvent.Event.Metadata);
 
@@ -50,7 +50,7 @@ namespace Bank.Cards.Infrastructure.Serialization
 
             var eventType = schema.GetDomainEventType(resolvedEvent.Event.EventType);
 
-            var domainEvent = (IDomainEvent)JsonSerializer.NonGeneric.Deserialize(eventType, resolvedEvent.Event.Data);
+            var domainEvent = (DomainEvent)JsonSerializer.NonGeneric.Deserialize(eventType, resolvedEvent.Event.Data);
             domainEvent.AggregateId = metadata.AggregateRootId;
 
             return domainEvent;

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Bank.Cards.Domain.Account.Events;
 using Bank.Cards.Domain.Account.Repositories;
+using Bank.Cards.Domain.Account.ValueTypes;
 using Bank.Cards.Domain.Account.Views;
 using Bank.Cards.Infrastructure.Persistence.EventStore;
 
@@ -17,7 +17,7 @@ namespace Bank.Cards.Infrastructure.Repositories
             _eventStore = eventStore;
         }
 
-        public async Task<AccountBalanceView> GetAccountBalance(Guid id)
+        public async Task<AccountBalanceView> GetAccountBalance(AccountId id)
         {
             var domainEvents = await _eventStore.GetEventsByStreamId(new AccountEventStreamId(id));
 
@@ -25,6 +25,16 @@ namespace Bank.Cards.Infrastructure.Repositories
                 return null;
 
             return new AccountBalanceView(domainEvents.Cast<AccountDomainEvent>());
+        }
+
+        public async Task<AccountStatusView> GetAccountStatus(AccountId id)
+        {
+            var domainEvents = await _eventStore.GetEventsByStreamId(new AccountEventStreamId(id));
+
+            if (domainEvents.Count == 0)
+                return null;
+
+            return new AccountStatusView(domainEvents.Cast<AccountDomainEvent>());
         }
     }
 }

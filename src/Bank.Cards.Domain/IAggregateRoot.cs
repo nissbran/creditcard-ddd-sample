@@ -6,6 +6,6 @@ namespace Bank.Cards.Domain
     {
         long AggregateVersion { get; }
 
-        List<IDomainEvent> UncommittedEvents { get; }
+        List<DomainEvent> UncommittedEvents { get; }
     }
 }

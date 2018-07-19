@@ -6,7 +6,7 @@ using Bank.Cards.Domain;
 
 namespace Bank.Cards.Infrastructure.Serialization.Schemas
 {
-    public abstract class EventSchema<TBaseEvent> : IEventSchema where TBaseEvent : IDomainEvent
+    public abstract class EventSchema<TBaseEvent> : IEventSchema where TBaseEvent : DomainEvent
     {
         private readonly Dictionary<string, Type> _definitionToType = new Dictionary<string, Type>();
         private readonly Dictionary<Type, EventType> _typeToDefinition = new Dictionary<Type, EventType>();
@@ -39,7 +39,7 @@ namespace Bank.Cards.Infrastructure.Serialization.Schemas
             return null;
         }
 
-        public EventType GetEventType(IDomainEvent domainEvent)
+        public EventType GetEventType(DomainEvent domainEvent)
         {
             if (_typeToDefinition.TryGetValue(domainEvent.GetType(), out var eventDefinition))
                 return eventDefinition;

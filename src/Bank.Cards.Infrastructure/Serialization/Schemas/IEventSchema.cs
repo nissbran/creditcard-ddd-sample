@@ -9,6 +9,6 @@ namespace Bank.Cards.Infrastructure.Serialization.Schemas
 
         Type GetDomainEventType(string eventType);
 
-        EventType GetEventType(IDomainEvent domainEvent);
+        EventType GetEventType(DomainEvent domainEvent);
     }
 }

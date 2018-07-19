@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Bank.Cards.Domain.Account;
+using Bank.Cards.Application;
+using Bank.Cards.Application.Accounts.CommandHandlers;
+using Bank.Cards.Application.Accounts.Commands;
 using Bank.Cards.Domain.Account.Repositories;
+using Bank.Cards.Domain.Account.Services;
+using Bank.Cards.Domain.Account.ValueTypes;
 using Bank.Cards.Domain.Enumerations;
 using Bank.Cards.Domain.ValueTypes;
 using Bank.Cards.Infrastructure.Configuration.EventStore;
@@ -18,7 +21,8 @@ namespace Bank.Cards.Console
     {
         private const int NumberOfAggregates = 5;
 
-        private static IAccountRootRepository _accountRootRepository;
+        private static ICommandHandler<CreateAccountCommand> _createAccountCommandHandler;
+        private static ICommandHandler<DebitAccountCommand> _debitAccountCommandHandler;
         private static IAccountViewRepository _accountViewsRepository;
         
         public static async Task Main(string[] args)
@@ -33,7 +37,9 @@ namespace Bank.Cards.Console
                     new AccountSchema()
                 }));
 
-            _accountRootRepository = new AccountRootRepository(eventStore);
+            var accountRootRepository = new AccountRootRepository(eventStore);
+            _createAccountCommandHandler = new CreateAccountCommandHandler(accountRootRepository, new AccountNumberGeneratorService());
+            _debitAccountCommandHandler = new DebitAccountCommandHandler(accountRootRepository);
             _accountViewsRepository = new AccountViewRepository(eventStore);
 
             var stopwatch = new Stopwatch();
@@ -63,29 +69,33 @@ namespace Bank.Cards.Console
         
         private static async Task CreateAccount(int number)
         {
-            var id = Guid.Parse($"42a11f29-4578-4d19-b1ec-544260ea40{number:D2}");
+            var id = AccountId.Parse($"42a11f29-4578-4d19-b1ec-544260ea40{number:D2}");
+
+            var account = await _accountViewsRepository.GetAccountStatus(id);
+
+            if (account == null)
+            {
+                await _createAccountCommandHandler.Handle(new CreateAccountCommand
+                {
+                    AccountId = id,
+                    CreditLimit = 15000
+                });
+            }
 
             for (int i = 0; i < 200; i++)
             {
-                var account = await _accountRootRepository.GetAccountById(id);
-
-                if (account == null)
+                await _debitAccountCommandHandler.Handle(new DebitAccountCommand
                 {
-                    account = new Account(id, "Test");
-                }
-
-                for (int y = 0; y < 100; y++)
-                {
-                    account.DebitAccount(new Money(7.5m, 2.5m, Currency.SEK));
-                }
-                
-                await _accountRootRepository.SaveAccount(account);
+                    AccountId = id,
+                    Reference = new TransactionReference($"Ref_{i}"),
+                    AmountToDebit = new Money(100m, Currency.SEK)
+                });
             }
         }
 
         private static async Task GetAccountBalances(int number)
         {
-            var id = Guid.Parse($"42a11f29-4578-4d19-b1ec-544260ea40{number:D2}");
+            var id = AccountId.Parse($"42a11f29-4578-4d19-b1ec-544260ea40{number:D2}");
 
             var balance = await _accountViewsRepository.GetAccountBalance(id);
             
