@@ -5,7 +5,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Bank.Cards.Domain\Bank.Cards.Domain.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views" />
-  </ItemGroup>
 </Project>

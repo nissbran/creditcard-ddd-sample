@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
 using Bank.Cards.Domain.Account.Events;
-using Bank.Cards.Domain.Account.State;
+using Bank.Cards.Domain.Account.Projections;
+using Bank.Cards.Domain.Model;
 
 namespace Bank.Cards.Domain.Account.Views
 {
     public abstract class AccountStateView
     {
-        internal readonly AccountState State;
+        internal readonly AccountStateProjection State;
         
-        protected AccountStateView(IEnumerable<AccountDomainEvent> domainEvents)
+        protected AccountStateView(AccountId id, IEnumerable<AccountDomainEvent> domainEvents)
         {
-            State = new AccountState(domainEvents);
+            State = new AccountStateProjection(id, domainEvents);
         }
     }
 }

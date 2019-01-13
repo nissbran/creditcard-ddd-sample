@@ -1,13 +1,13 @@
-﻿namespace Bank.Cards.Domain.Card.Events
-{
-    using System;
+﻿using Bank.Cards.Domain.Model;
 
+namespace Bank.Cards.Domain.Card.Events
+{
     [EventType("CreditCardConnectedToAccount")]
     public class CreditCardConnectedToAccountEvent : CreditCardDomainEvent
     {
-        public Guid AccountId { get; }
+        public AccountId AccountId { get; }
 
-        public CreditCardConnectedToAccountEvent(Guid accountId)
+        public CreditCardConnectedToAccountEvent(AccountId accountId)
         {
             AccountId = accountId;
         }

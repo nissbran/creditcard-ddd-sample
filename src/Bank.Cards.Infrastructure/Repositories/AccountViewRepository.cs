@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Bank.Cards.Domain.Account.Events;
 using Bank.Cards.Domain.Account.Repositories;
-using Bank.Cards.Domain.Account.ValueTypes;
 using Bank.Cards.Domain.Account.Views;
+using Bank.Cards.Domain.Model;
 using Bank.Cards.Infrastructure.Persistence.EventStore;
 
 namespace Bank.Cards.Infrastructure.Repositories
@@ -24,7 +24,7 @@ namespace Bank.Cards.Infrastructure.Repositories
             if (domainEvents.Count == 0)
                 return null;
 
-            return new AccountBalanceView(domainEvents.Cast<AccountDomainEvent>());
+            return new AccountBalanceView(id, domainEvents.Cast<AccountDomainEvent>());
         }
 
         public async Task<AccountStatusView> GetAccountStatus(AccountId id)
@@ -34,7 +34,7 @@ namespace Bank.Cards.Infrastructure.Repositories
             if (domainEvents.Count == 0)
                 return null;
 
-            return new AccountStatusView(domainEvents.Cast<AccountDomainEvent>());
+            return new AccountStatusView(id, domainEvents.Cast<AccountDomainEvent>());
         }
     }
 }

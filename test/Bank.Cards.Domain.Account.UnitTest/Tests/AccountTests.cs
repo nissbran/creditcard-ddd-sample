@@ -1,7 +1,5 @@
 ﻿using Bank.Cards.Domain.Account.Events;
-using Bank.Cards.Domain.Account.ValueTypes;
-using Bank.Cards.Domain.Enumerations;
-using Bank.Cards.Domain.ValueTypes;
+using Bank.Cards.Domain.Model;
 using Xunit;
 
 namespace Bank.Cards.Domain.Account.UnitTest.Tests
@@ -16,7 +14,7 @@ namespace Bank.Cards.Domain.Account.UnitTest.Tests
             var accountNumber = new AccountNumber("41040123");
             
             // Act
-            var account = new Account(accountId, accountNumber);
+            var account = new Account(accountId, Country.Sweden, Currency.SEK, accountNumber);
             
             // Assert
             Assert.Equal(accountId, account.Id);
@@ -28,11 +26,11 @@ namespace Bank.Cards.Domain.Account.UnitTest.Tests
             // Arrange
             var account = GivenAccount()
                 .With(new CreditLimitChangedEvent(5000))
-                .With(new AccountDebitedEvent(4500))
+                .With(new AccountDebitedEvent(Money.Create(4500, Currency.SEK)))
                 .Build();
             
             // Act
-            account.Debit(new Money(600, Currency.SEK), new TransactionReference("Ref"));
+            account.Debit(Money.Create(600, Currency.SEK), new TransactionReference("Ref"));
             
             // Assert
             account.AssertNewEventExist<CreditLimitHitEvent>();

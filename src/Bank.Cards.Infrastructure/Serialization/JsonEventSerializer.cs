@@ -5,7 +5,6 @@ using Bank.Cards.Domain;
 using Bank.Cards.Infrastructure.Serialization.Schemas;
 using EventStore.ClientAPI;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Bank.Cards.Infrastructure.Serialization
 {
@@ -23,7 +22,7 @@ namespace Bank.Cards.Infrastructure.Serialization
             
             _jsonSerializerSettings = new JsonSerializerSettings
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                ContractResolver = new DomainJsonContractResolver(),
                 NullValueHandling = NullValueHandling.Ignore
             };
         }
@@ -33,7 +32,6 @@ namespace Bank.Cards.Infrastructure.Serialization
             _eventSchemas.TryGetValue(domainEvent.AggregateType, out var schema);
 
             var eventType = schema.GetEventType(domainEvent);
-            var eventId = Guid.NewGuid();
 
             var dataJson = JsonConvert.SerializeObject(domainEvent, _jsonSerializerSettings);
             var metadataJson = JsonConvert.SerializeObject(new DomainMetadata
@@ -48,7 +46,7 @@ namespace Bank.Cards.Infrastructure.Serialization
             var data = Encoding.UTF8.GetBytes(dataJson);
             var metadata = Encoding.UTF8.GetBytes(metadataJson);
             
-            return new EventData(eventId, eventType, true, data, metadata);
+            return new EventData(Guid.NewGuid(), eventType, true, data, metadata);
         }
 
         public DomainEvent DeserializeEvent(ResolvedEvent resolvedEvent)

@@ -11,7 +11,12 @@
             Description = description;
         }
         
-        public static readonly CommandExecutionResult Ok = new CommandExecutionResult(0, "Ok"); 
-        public static readonly CommandExecutionResult NotFound = new CommandExecutionResult(400, "NotFound"); 
+        public static CommandExecutionResult Ok => new CommandExecutionResult(0, "Ok");
+        public static CommandExecutionResult NotFound => new CommandExecutionResult(404, "NotFound");
+
+        public static CommandExecutionResult DomainValidationError(string description)
+        {
+            return new CommandExecutionResult(400, description);
+        }
     }
 }

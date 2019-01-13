@@ -1,30 +1,26 @@
 ﻿using System.Collections.Generic;
 using Bank.Cards.Domain.Account.Events;
-using Bank.Cards.Domain.Account.State;
-using Bank.Cards.Domain.Account.ValueTypes;
-using Bank.Cards.Domain.ValueTypes;
+using Bank.Cards.Domain.Account.Projections;
+using Bank.Cards.Domain.Model;
 
 namespace Bank.Cards.Domain.Account
 {
-    public class Account : IAggregateRoot
+    public class Account : AggregateRoot<AccountId, AccountStateProjection>
     {
-        public AccountId Id => _state.Id;
-
-        public long AggregateVersion => _state.Version;
-        public List<DomainEvent> UncommittedEvents { get; } = new List<DomainEvent>();
-
-        private readonly AccountState _state;
+        public AccountId Id => State.Id;
         
-        public Account(AccountId id, AccountNumber accountNumber)
+        private Account(AccountStateProjection state) : base(state)
         {
-            _state = new AccountState(id);
-            
-            ApplyChange(new AccountCreatedEvent(accountNumber));
+        }
+        
+        public Account(AccountId id, Country country, Currency currency, AccountNumber accountNumber) : this(new AccountStateProjection(id))
+        {
+            ApplyChange(new AccountCreatedEvent(country, currency, accountNumber));
         }
 
-        public Account(IEnumerable<AccountDomainEvent> historicEvents)
+        public Account(AccountId id, IEnumerable<AccountDomainEvent> historicEvents) : this(
+            new AccountStateProjection(id, historicEvents))
         {
-            _state = new AccountState(historicEvents);
         }
 
         public void SetCreditLimit(decimal creditLimit)
@@ -34,9 +30,9 @@ namespace Bank.Cards.Domain.Account
 
         public void Debit(Money amount, TransactionReference reference)
         {
-            var expectedBalance = _state.Balance - amount;
+            var expectedBalance = State.Balance - amount;
             
-            if (expectedBalance < -_state.CreditLimit)
+            if (expectedBalance < -State.CreditLimit)
                 ApplyChange(new CreditLimitHitEvent(reference));
             else
                 ApplyChange(new AccountDebitedEvent(amount));
@@ -45,13 +41,6 @@ namespace Bank.Cards.Domain.Account
         public void Credit(Money amount)
         {
             ApplyChange(new AccountCreditedEvent(amount));
-        }
-
-        private void ApplyChange(AccountDomainEvent domainEvent)
-        {
-            _state.ApplyEvent(domainEvent);
-            domainEvent.AggregateId = Id;
-            UncommittedEvents.Add(domainEvent);
         }
     }
 }

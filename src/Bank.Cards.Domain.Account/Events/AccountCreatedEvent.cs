@@ -1,14 +1,20 @@
-﻿namespace Bank.Cards.Domain.Account.Events
+﻿using Bank.Cards.Domain.Model;
+
+namespace Bank.Cards.Domain.Account.Events
 {
     [EventType("AccountCreated")]
     public class AccountCreatedEvent : AccountDomainEvent
     {
-        public string CurrencyIso { get; set; }
+        public Country Country { get; }
+        
+        public Currency Currency { get; }
 
         public string AccountNumber { get; }
 
-        public AccountCreatedEvent(string accountNumber)
+        public AccountCreatedEvent(Country country, Currency currency, string accountNumber)
         {
+            Country = country;
+            Currency = currency;
             AccountNumber = accountNumber;
         }
     }

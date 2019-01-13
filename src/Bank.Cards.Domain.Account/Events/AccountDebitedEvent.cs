@@ -1,13 +1,15 @@
-﻿namespace Bank.Cards.Domain.Account.Events
+﻿using Bank.Cards.Domain.Model;
+
+namespace Bank.Cards.Domain.Account.Events
 {
     [EventType("AccountDebited")]
     public class AccountDebitedEvent : AccountDomainEvent
     {
-        public decimal Amount { get; }
+        public Money Amount { get; }
 
         public string Reference { get; set; }
 
-        public AccountDebitedEvent(decimal amount)
+        public AccountDebitedEvent(Money amount)
         {
             Amount = amount;
         }

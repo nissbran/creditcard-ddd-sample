@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Bank.Cards.Domain.Account;
 using Bank.Cards.Domain.Account.Events;
 using Bank.Cards.Domain.Account.Repositories;
-using Bank.Cards.Domain.Account.ValueTypes;
+using Bank.Cards.Domain.Model;
 using Bank.Cards.Infrastructure.Persistence.EventStore;
 
 namespace Bank.Cards.Infrastructure.Repositories
@@ -24,30 +24,29 @@ namespace Bank.Cards.Infrastructure.Repositories
             if (domainEvents.Count == 0)
                 return null;
 
-            return new Account(domainEvents.Cast<AccountDomainEvent>());
+            return new Account(accountId, domainEvents.Cast<AccountDomainEvent>());
         }
 
         public async Task SaveAccount(Account account)
         {
-            var expectedStreamVersion = account.AggregateVersion - account.UncommittedEvents.Count;
-
-            await _eventStore.SaveEvents(new AccountEventStreamId(account.Id), expectedStreamVersion, account.UncommittedEvents);
+            foreach (var venueUncommittedEvent in account.UncommittedEvents)
+            {
+                venueUncommittedEvent.AggregateId = account.Id;
+            }
+            
+            await _eventStore.SaveEvents(new AccountEventStreamId(account.Id), account.GetExpectedVersion(), account.UncommittedEvents);
         }
     }
     
     public sealed class AccountEventStreamId : EventStreamId
     {
-        public string Id { get; }
+        private readonly string _id;
 
-        public override string StreamName => $"Account-{Id}";
+        public override string StreamName => $"Account-{_id}";
 
-        public AccountEventStreamId(string id)
+        public AccountEventStreamId(AccountId id)
         {
-            Id = id;
-        }
-
-        public AccountEventStreamId(AccountId id) : this(id.ToString())
-        {
+            _id = id.ToString();
         }
     }
 }

@@ -1,35 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Bank.Cards.Domain.Card.Events;
+using Bank.Cards.Domain.Card.Projections;
 using Bank.Cards.Domain.Card.Services;
-using Bank.Cards.Domain.Card.State;
 using Bank.Cards.Domain.Card.ValueTypes;
+using Bank.Cards.Domain.Model;
 
 namespace Bank.Cards.Domain.Card
 {
-    public class CreditCard : IAggregateRoot
+    public class CreditCard : AggregateRoot<CardId, CreditCardStateProjection>
     {
-        public CardId Id => _state.Id;
-        public long AggregateVersion => _state.Version;
-        public List<DomainEvent> UncommittedEvents => _state.UncommittedEvents;
+        public CardId Id => State.Id;
 
-        private readonly CardState _state;
-        
-        public CreditCard(CardId cardId, Guid accountId, CardNumber cardNumber, DateTimeOffset expireDate)
+        private CreditCard(CreditCardStateProjection state) : base(state)
         {
-            _state = new CardState(cardId);
-            
-            _state.ApplyChange(new CreditCardCreatedEvent(
+        }
+
+        public CreditCard(CardId id, AccountId accountId, CardNumber cardNumber, DateTimeOffset expireDate) : this(new CreditCardStateProjection(id))
+        {
+            ApplyChange(new CreditCardCreatedEvent(
                 PanEncryptor.EncryptPan(cardNumber),
                 PanHasher.HashPan(cardNumber),
                 expireDate));
-            _state.ApplyChange(new CreditCardConnectedToAccountEvent(accountId));
+            ApplyChange(new CreditCardConnectedToAccountEvent(accountId));
         }
 
-        public CreditCard(IEnumerable<CreditCardDomainEvent> historicEvents)
+        public CreditCard(CardId id, IEnumerable<CreditCardDomainEvent> historicEvents) : this(
+            new CreditCardStateProjection(id, historicEvents))
         {
-            _state = new CardState(historicEvents);
         }
     }
 }

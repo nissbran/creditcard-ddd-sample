@@ -1,5 +1,4 @@
 ﻿using System;
-using Bank.Cards.Domain.Account.ValueTypes;
 
 namespace Bank.Cards.Domain.Account.Services
 {

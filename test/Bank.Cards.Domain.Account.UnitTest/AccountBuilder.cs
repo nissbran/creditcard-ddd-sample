@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Bank.Cards.Domain.Account.Events;
-using Bank.Cards.Domain.Account.ValueTypes;
+using Bank.Cards.Domain.Model;
 
-namespace Bank.Cards.Domain.Account.UnitTest.Tests
+namespace Bank.Cards.Domain.Account.UnitTest
 {
     public interface IAccountBuilder
     {
@@ -19,7 +19,10 @@ namespace Bank.Cards.Domain.Account.UnitTest.Tests
         {
             DomainEvents = new List<AccountDomainEvent>
             {
-                new AccountCreatedEvent(new AccountNumber("41040123"))
+                new AccountCreatedEvent(
+                    Country.Sweden, 
+                    Currency.SEK, 
+                    new AccountNumber("41040123"))
             };
         }
         
@@ -29,7 +32,7 @@ namespace Bank.Cards.Domain.Account.UnitTest.Tests
             
             DomainEvents.ForEach(domainEvent => domainEvent.AggregateId = accountId);
             
-            return new Account(DomainEvents);
+            return new Account(accountId, DomainEvents);
         }
     }
 }

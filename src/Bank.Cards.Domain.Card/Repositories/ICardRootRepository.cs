@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Bank.Cards.Domain.Card.ValueTypes;
+using Bank.Cards.Domain.Model;
 
 namespace Bank.Cards.Domain.Card.Repositories
 {

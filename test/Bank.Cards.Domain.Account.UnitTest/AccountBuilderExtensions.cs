@@ -1,5 +1,4 @@
 ﻿using Bank.Cards.Domain.Account.Events;
-using Bank.Cards.Domain.Account.UnitTest.Tests;
 
 namespace Bank.Cards.Domain.Account.UnitTest
 {

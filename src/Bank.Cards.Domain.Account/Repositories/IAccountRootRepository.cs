@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Bank.Cards.Domain.Account.ValueTypes;
+using Bank.Cards.Domain.Model;
 
 namespace Bank.Cards.Domain.Account.Repositories
 {
